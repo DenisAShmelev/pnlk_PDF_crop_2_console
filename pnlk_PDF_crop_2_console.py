@@ -1,6 +1,5 @@
 import PyPDF2
 import os
-from copy import deepcopy
 
 def get_page_size(pdf_path):
     """
@@ -58,17 +57,6 @@ def determine_parts_count(ratio):
     else:
         return None, "не определено (соотношение не подходит под заданные диапазоны)"
 
-def create_page_copy(page, media_box):
-    """
-    Создает новую страницу с заданными границами
-    """
-    new_page = PyPDF2.PageObject(
-        pdf=page.pdf,
-        page_number=page.page_number,
-    )
-    new_page.mediabox = media_box
-    return new_page
-
 def split_page(page, parts_count, split_direction):
     """
     Разделяет страницу на указанное количество частей
@@ -97,11 +85,25 @@ def split_page(page, parts_count, split_direction):
                 lower_left = (i * part_width, 0)
                 upper_right = ((i + 1) * part_width, long_side)
             
-            new_media_box = PyPDF2.papersizes.RectangleObject([
+            # Создаем новый медиабокс
+            new_media_box = PyPDF2.generic.RectangleObject([
                 lower_left[0], lower_left[1],
                 upper_right[0], upper_right[1]
             ])
-            new_page = create_page_copy(page, new_media_box)
+            
+            # Создаем новую страницу
+            new_page = PyPDF2.PageObject.create_blank_page(
+                width=upper_right[0] - lower_left[0],
+                height=upper_right[1] - lower_left[1]
+            )
+            
+            # Копируем содержимое оригинальной страницы в новую с учетом смещения
+            new_page.merge_transformed_page(
+                page,
+                (1, 0, 0, 1, -lower_left[0], -lower_left[1])
+            )
+            new_page.mediabox = new_media_box
+            
             split_pages.append(new_page)
     else:
         # Разделяем по длинной стороне
@@ -116,11 +118,25 @@ def split_page(page, parts_count, split_direction):
                 lower_left = (0, i * part_length)
                 upper_right = (short_side, (i + 1) * part_length)
             
-            new_media_box = PyPDF2.papersizes.RectangleObject([
+            # Создаем новый медиабокс
+            new_media_box = PyPDF2.generic.RectangleObject([
                 lower_left[0], lower_left[1],
                 upper_right[0], upper_right[1]
             ])
-            new_page = create_page_copy(page, new_media_box)
+            
+            # Создаем новую страницу
+            new_page = PyPDF2.PageObject.create_blank_page(
+                width=upper_right[0] - lower_left[0],
+                height=upper_right[1] - lower_left[1]
+            )
+            
+            # Копируем содержимое оригинальной страницы в новую с учетом смещения
+            new_page.merge_transformed_page(
+                page,
+                (1, 0, 0, 1, -lower_left[0], -lower_left[1])
+            )
+            new_page.mediabox = new_media_box
+            
             split_pages.append(new_page)
     
     return split_pages
