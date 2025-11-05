@@ -148,8 +148,8 @@ def save_split_pages(original_path, split_pages):
     """
     base_name = os.path.splitext(original_path)[0]
     
-    # Сохраняем отдельные части
-    for i, page in enumerate(split_pages, 1):
+    # Сохраняем отдельные части В ОБРАТНОМ ПОРЯДКЕ
+    for i, page in enumerate(reversed(split_pages), 1):
         output_pdf = PyPDF2.PdfWriter()
         output_pdf.add_page(page)
         
@@ -158,9 +158,9 @@ def save_split_pages(original_path, split_pages):
             output_pdf.write(output_file)
         print(f"Создан файл: {part_filename}")
     
-    # Сохраняем объединенный файл
+    # Сохраняем объединенный файл В ОБРАТНОМ ПОРЯДКЕ
     full_pdf = PyPDF2.PdfWriter()
-    for page in split_pages:
+    for page in reversed(split_pages):
         full_pdf.add_page(page)
     
     full_filename = f"{base_name}_полный.pdf"
