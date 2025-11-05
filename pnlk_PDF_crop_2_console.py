@@ -85,17 +85,32 @@ def split_page(page, parts_count, split_direction):
                 lower_left = (i * part_width, 0)
                 upper_right = ((i + 1) * part_width, long_side)
             
-            # Создаем копию оригинальной страницы
-            new_page = PyPDF2.PageObject(pdf=page.pdf, indirect=page.indirect)
-            
-            # Устанавливаем новый медиабокс для обрезки
+            # Создаем новый медиабокс
             new_media_box = PyPDF2.generic.RectangleObject([
                 lower_left[0], lower_left[1],
                 upper_right[0], upper_right[1]
             ])
-            new_page.mediabox = new_media_box
             
-            split_pages.append(new_page)
+            # Клонируем страницу через добавление в writer и извлечение
+            writer = PyPDF2.PdfWriter()
+            writer.add_page(page)
+            
+            # Создаем временный файл для клонирования
+            import tempfile
+            with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf') as temp_file:
+                writer.write(temp_file)
+                temp_file_path = temp_file.name
+            
+            # Читаем клонированную страницу
+            with open(temp_file_path, 'rb') as temp_file:
+                temp_reader = PyPDF2.PdfReader(temp_file)
+                cloned_page = temp_reader.pages[0]
+                cloned_page.mediabox = new_media_box
+                split_pages.append(cloned_page)
+            
+            # Удаляем временный файл
+            os.unlink(temp_file_path)
+            
     else:
         # Разделяем по длинной стороне
         part_length = long_side / parts_count
@@ -109,17 +124,31 @@ def split_page(page, parts_count, split_direction):
                 lower_left = (0, i * part_length)
                 upper_right = (short_side, (i + 1) * part_length)
             
-            # Создаем копию оригинальной страницы
-            new_page = PyPDF2.PageObject(pdf=page.pdf, indirect=page.indirect)
-            
-            # Устанавливаем новый медиабокс для обрезки
+            # Создаем новый медиабокс
             new_media_box = PyPDF2.generic.RectangleObject([
                 lower_left[0], lower_left[1],
                 upper_right[0], upper_right[1]
             ])
-            new_page.mediabox = new_media_box
             
-            split_pages.append(new_page)
+            # Клонируем страницу через добавление в writer и извлечение
+            writer = PyPDF2.PdfWriter()
+            writer.add_page(page)
+            
+            # Создаем временный файл для клонирования
+            import tempfile
+            with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf') as temp_file:
+                writer.write(temp_file)
+                temp_file_path = temp_file.name
+            
+            # Читаем клонированную страницу
+            with open(temp_file_path, 'rb') as temp_file:
+                temp_reader = PyPDF2.PdfReader(temp_file)
+                cloned_page = temp_reader.pages[0]
+                cloned_page.mediabox = new_media_box
+                split_pages.append(cloned_page)
+            
+            # Удаляем временный файл
+            os.unlink(temp_file_path)
     
     return split_pages
 
