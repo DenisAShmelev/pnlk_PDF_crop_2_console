@@ -64,6 +64,9 @@ def main_console():
             print(f"Ошибка: {ratio_or_error}")
         
         print("-" * 50)
+        
+        # Ожидание реакции пользователя перед следующим циклом
+        input("Нажмите Enter для продолжения...")
 
 if __name__ == "__main__":
     main_console()
