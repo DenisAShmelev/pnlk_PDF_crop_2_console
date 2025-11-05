@@ -58,15 +58,26 @@ def determine_parts_count(ratio):
     else:
         return None, "не определено (соотношение не подходит под заданные диапазоны)"
 
+def create_page_copy(page, media_box):
+    """
+    Создает новую страницу с заданными границами
+    """
+    new_page = PyPDF2.PageObject(
+        pdf=page.pdf,
+        page_number=page.page_number,
+    )
+    new_page.mediabox = media_box
+    return new_page
+
 def split_page(page, parts_count, split_direction):
     """
     Разделяет страницу на указанное количество частей
     """
     split_pages = []
-    media_box = page.mediabox
+    original_media_box = page.mediabox
     
-    width = float(media_box.width)
-    height = float(media_box.height)
+    width = float(original_media_box.width)
+    height = float(original_media_box.height)
     
     # Определяем ориентацию страницы
     is_landscape = width > height
@@ -77,29 +88,39 @@ def split_page(page, parts_count, split_direction):
         # Разделяем по короткой стороне (ширине)
         part_width = short_side / parts_count
         for i in range(parts_count):
-            new_page = deepcopy(page)
             if is_landscape:
                 # Горизонтальная ориентация: width - длинная, height - короткая
-                new_page.mediabox.lower_left = (0, i * part_width)
-                new_page.mediabox.upper_right = (long_side, (i + 1) * part_width)
+                lower_left = (0, i * part_width)
+                upper_right = (long_side, (i + 1) * part_width)
             else:
                 # Вертикальная ориентация: height - длинная, width - короткая
-                new_page.mediabox.lower_left = (i * part_width, 0)
-                new_page.mediabox.upper_right = ((i + 1) * part_width, long_side)
+                lower_left = (i * part_width, 0)
+                upper_right = ((i + 1) * part_width, long_side)
+            
+            new_media_box = PyPDF2.papersizes.RectangleObject([
+                lower_left[0], lower_left[1],
+                upper_right[0], upper_right[1]
+            ])
+            new_page = create_page_copy(page, new_media_box)
             split_pages.append(new_page)
     else:
         # Разделяем по длинной стороне
         part_length = long_side / parts_count
         for i in range(parts_count):
-            new_page = deepcopy(page)
             if is_landscape:
                 # Горизонтальная ориентация
-                new_page.mediabox.lower_left = (i * part_length, 0)
-                new_page.mediabox.upper_right = ((i + 1) * part_length, short_side)
+                lower_left = (i * part_length, 0)
+                upper_right = ((i + 1) * part_length, short_side)
             else:
                 # Вертикальная ориентация
-                new_page.mediabox.lower_left = (0, i * part_length)
-                new_page.mediabox.upper_right = (short_side, (i + 1) * part_length)
+                lower_left = (0, i * part_length)
+                upper_right = (short_side, (i + 1) * part_length)
+            
+            new_media_box = PyPDF2.papersizes.RectangleObject([
+                lower_left[0], lower_left[1],
+                upper_right[0], upper_right[1]
+            ])
+            new_page = create_page_copy(page, new_media_box)
             split_pages.append(new_page)
     
     return split_pages
