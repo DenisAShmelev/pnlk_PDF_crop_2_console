@@ -91,18 +91,20 @@ def split_page(page, parts_count, split_direction):
                 upper_right[0], upper_right[1]
             ])
             
-            # Создаем новую страницу
+            # Создаем новую страницу с тем же содержимым, но обрезанную
             new_page = PyPDF2.PageObject.create_blank_page(
                 width=upper_right[0] - lower_left[0],
                 height=upper_right[1] - lower_left[1]
             )
             
-            # Копируем содержимое оригинальной страницы в новую с учетом смещения
-            new_page.merge_transformed_page(
-                page,
-                (1, 0, 0, 1, -lower_left[0], -lower_left[1])
-            )
+            # Просто устанавливаем медиабокс - это создаст обрезанную страницу
             new_page.mediabox = new_media_box
+            
+            # Копируем основные атрибуты
+            if hasattr(page, 'resources'):
+                new_page.resources = page.resources
+            if hasattr(page, 'contents'):
+                new_page.contents = page.contents
             
             split_pages.append(new_page)
     else:
@@ -124,18 +126,20 @@ def split_page(page, parts_count, split_direction):
                 upper_right[0], upper_right[1]
             ])
             
-            # Создаем новую страницу
+            # Создаем новую страницу с тем же содержимым, но обрезанную
             new_page = PyPDF2.PageObject.create_blank_page(
                 width=upper_right[0] - lower_left[0],
                 height=upper_right[1] - lower_left[1]
             )
             
-            # Копируем содержимое оригинальной страницы в новую с учетом смещения
-            new_page.merge_transformed_page(
-                page,
-                (1, 0, 0, 1, -lower_left[0], -lower_left[1])
-            )
+            # Просто устанавливаем медиабокс - это создаст обрезанную страницу
             new_page.mediabox = new_media_box
+            
+            # Копируем основные атрибуты
+            if hasattr(page, 'resources'):
+                new_page.resources = page.resources
+            if hasattr(page, 'contents'):
+                new_page.contents = page.contents
             
             split_pages.append(new_page)
     
