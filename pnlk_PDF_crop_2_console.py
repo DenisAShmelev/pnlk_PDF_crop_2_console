@@ -85,26 +85,15 @@ def split_page(page, parts_count, split_direction):
                 lower_left = (i * part_width, 0)
                 upper_right = ((i + 1) * part_width, long_side)
             
-            # Создаем новый медиабокс
+            # Создаем копию оригинальной страницы
+            new_page = PyPDF2.PageObject(pdf=page.pdf, indirect=page.indirect)
+            
+            # Устанавливаем новый медиабокс для обрезки
             new_media_box = PyPDF2.generic.RectangleObject([
                 lower_left[0], lower_left[1],
                 upper_right[0], upper_right[1]
             ])
-            
-            # Создаем новую страницу с тем же содержимым, но обрезанную
-            new_page = PyPDF2.PageObject.create_blank_page(
-                width=upper_right[0] - lower_left[0],
-                height=upper_right[1] - lower_left[1]
-            )
-            
-            # Просто устанавливаем медиабокс - это создаст обрезанную страницу
             new_page.mediabox = new_media_box
-            
-            # Копируем основные атрибуты
-            if hasattr(page, 'resources'):
-                new_page.resources = page.resources
-            if hasattr(page, 'contents'):
-                new_page.contents = page.contents
             
             split_pages.append(new_page)
     else:
@@ -120,26 +109,15 @@ def split_page(page, parts_count, split_direction):
                 lower_left = (0, i * part_length)
                 upper_right = (short_side, (i + 1) * part_length)
             
-            # Создаем новый медиабокс
+            # Создаем копию оригинальной страницы
+            new_page = PyPDF2.PageObject(pdf=page.pdf, indirect=page.indirect)
+            
+            # Устанавливаем новый медиабокс для обрезки
             new_media_box = PyPDF2.generic.RectangleObject([
                 lower_left[0], lower_left[1],
                 upper_right[0], upper_right[1]
             ])
-            
-            # Создаем новую страницу с тем же содержимым, но обрезанную
-            new_page = PyPDF2.PageObject.create_blank_page(
-                width=upper_right[0] - lower_left[0],
-                height=upper_right[1] - lower_left[1]
-            )
-            
-            # Просто устанавливаем медиабокс - это создаст обрезанную страницу
             new_page.mediabox = new_media_box
-            
-            # Копируем основные атрибуты
-            if hasattr(page, 'resources'):
-                new_page.resources = page.resources
-            if hasattr(page, 'contents'):
-                new_page.contents = page.contents
             
             split_pages.append(new_page)
     
