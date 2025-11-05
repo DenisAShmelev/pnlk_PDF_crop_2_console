@@ -1,5 +1,6 @@
 import PyPDF2
 import os
+import io
 
 def get_page_size(pdf_path):
     """
@@ -57,6 +58,25 @@ def determine_parts_count(ratio):
     else:
         return None, "не определено (соотношение не подходит под заданные диапазоны)"
 
+def clone_page(page):
+    """
+    Создает независимую копию страницы
+    """
+    # Создаем временный PDF в памяти
+    temp_writer = PyPDF2.PdfWriter()
+    temp_writer.add_page(page)
+    
+    # Сохраняем в байтовый буфер
+    buffer = io.BytesIO()
+    temp_writer.write(buffer)
+    buffer.seek(0)
+    
+    # Читаем обратно как независимую страницу
+    temp_reader = PyPDF2.PdfReader(buffer)
+    cloned_page = temp_reader.pages[0]
+    
+    return cloned_page
+
 def split_page(page, parts_count, split_direction):
     """
     Разделяет страницу на указанное количество частей
@@ -91,25 +111,10 @@ def split_page(page, parts_count, split_direction):
                 upper_right[0], upper_right[1]
             ])
             
-            # Клонируем страницу через добавление в writer и извлечение
-            writer = PyPDF2.PdfWriter()
-            writer.add_page(page)
-            
-            # Создаем временный файл для клонирования
-            import tempfile
-            with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf') as temp_file:
-                writer.write(temp_file)
-                temp_file_path = temp_file.name
-            
-            # Читаем клонированную страницу
-            with open(temp_file_path, 'rb') as temp_file:
-                temp_reader = PyPDF2.PdfReader(temp_file)
-                cloned_page = temp_reader.pages[0]
-                cloned_page.mediabox = new_media_box
-                split_pages.append(cloned_page)
-            
-            # Удаляем временный файл
-            os.unlink(temp_file_path)
+            # Клонируем страницу
+            cloned_page = clone_page(page)
+            cloned_page.mediabox = new_media_box
+            split_pages.append(cloned_page)
             
     else:
         # Разделяем по длинной стороне
@@ -130,25 +135,10 @@ def split_page(page, parts_count, split_direction):
                 upper_right[0], upper_right[1]
             ])
             
-            # Клонируем страницу через добавление в writer и извлечение
-            writer = PyPDF2.PdfWriter()
-            writer.add_page(page)
-            
-            # Создаем временный файл для клонирования
-            import tempfile
-            with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf') as temp_file:
-                writer.write(temp_file)
-                temp_file_path = temp_file.name
-            
-            # Читаем клонированную страницу
-            with open(temp_file_path, 'rb') as temp_file:
-                temp_reader = PyPDF2.PdfReader(temp_file)
-                cloned_page = temp_reader.pages[0]
-                cloned_page.mediabox = new_media_box
-                split_pages.append(cloned_page)
-            
-            # Удаляем временный файл
-            os.unlink(temp_file_path)
+            # Клонируем страницу
+            cloned_page = clone_page(page)
+            cloned_page.mediabox = new_media_box
+            split_pages.append(cloned_page)
     
     return split_pages
 
